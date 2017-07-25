@@ -57,7 +57,7 @@ class Spectrum:
 
         if not os.path.isdir('input'):
             print("""Warning: There is no input file, 'input.txt'.""")
-            print("""The filtering function will adopt default settings.""")
+            print("""The filtering function will adopt default settings.\n""")
             """sys.exit()"""
         else:
             os.chdir(os.path.join(path, 'input'))
@@ -100,7 +100,7 @@ class Spectrum:
                                 beta = file_num
                                 
             if not (int(window_len) % 2) == 0:
-                print("Channel length for low-pass filter should be even number.")
+                print("Channel length for low-pass filter should be even number.\n")
                 sys.exit()
             self.info['window_len'] = int(window_len)
             self.info['beta']       = int(beta)
@@ -121,10 +121,10 @@ class Spectrum:
             column2: intensity"""
             self.info[name] = copy.deepcopy(data)
         except:
-            print('The file, '+filename+', cannot be read by NUMPY due to its data structure.')
+            print('The file, '+filename+', cannot be read by NUMPY due to its data structure.\n')
 
         if not type(self.info[name]).__module__ == 'numpy':
-            print("""There is no readable input files in the input folder.""")
+            print("""There is no readable input files in the input folder.\n""")
             sys.exit()
 
 
@@ -152,7 +152,7 @@ class Spectrum:
             statement = ''
             statement += '{:<30}'.format('Energy Loss')
             if(col_name==None):
-                print("Warning: no col_name in output method. You should designate col_name if option = True")
+                print("Warning: no col_name in output method. You should designate col_name if option = True\n")
             statement += '\t{:<30}'.format(col_name)
             out.write(statement+'\n')
         
@@ -185,7 +185,7 @@ class Spectrum:
 
         for j in range(0, len(args[0:-1])):
             if not isinstance(args[j], str):
-                print("""Arguments should be defined as strings.""")
+                print("""Arguments should be defined as strings.\n""")
                 sys.exit()
 
         data = []
@@ -365,7 +365,7 @@ class Spectrum:
         try:
             f = interp1d(temp[peakind,0],temp[peakind,1], kind='cubic')
         except:
-            print("Channel width is too small to make interpolation.")
+            print("Channel width is too small to make interpolation.\n")
             sys.exit()
         fpeak = f(temp[int(loc_start):int(loc_end)+1,0])
         temp[int(loc_start):int(loc_end)+1,1] = fpeak[:]
@@ -538,15 +538,15 @@ class Spectrum:
         order = np.abs(np.int(order))
         
         if (window_size%2 != 1):
-            print("Savitzky Golay: window-size automatically adjusted by the nearest odd number.")
+            print("Savitzky Golay: window-size automatically adjusted by the nearest odd number.\n")
             window_size += window_size
             
         if (window_size < 1):
-            print("Savitzky Golay: window-size automatically adjusted by the default value.")
+            print("Savitzky Golay: window-size automatically adjusted by the default value.\n")
             window_size = 3
         
         if (window_size < order + 2):
-            print("Savitzky Golay: window-size automatically adjusted by considering order")
+            print("Savitzky Golay: window-size automatically adjusted by considering order.\n")
             if (order%2 == 1):
                 window_size = order + 2
             else:
@@ -581,7 +581,7 @@ class Spectrum:
                 
         elif (option==3):
             if position is None:
-                print("""Normalize: assign your position.""")
+                print("""Normalize: assign your position.\n""")
                 sys.exit()
                 
             loc_val = int(np.min(np.where(np.absolute(data[:,0]-position)<dispersion)))
@@ -593,7 +593,7 @@ class Spectrum:
             data[:,1] /= temp_sum
             
         else:
-            print("""Normalize: check your option.""")
+            print("""Normalize: check your option.\n""")
             sys.exit()
             
         self.info[normed_name] = copy.deepcopy(data[:,:])
@@ -944,69 +944,6 @@ class Spectrum:
         sdata = np.fft.irfft(j1,axis=0)
         self.info[filtername] = copy.deepcopy(sdata)
 
-#i = 0
-#aa = []
-#test = Spectrum()
-#for files in os.listdir():
-#    if files == 'input.txt':
-#        continue
-#    if 'ep2' in files:
-#        test.read_input(files,files)
-#        test.low_pass_filter(files,files+'_fil')
-#        test.overlap_filter(files+'_fil',files+'_over',0.8, 'end', 2)
-#        loc = np.min(np.where(np.absolute(test.info[files][:,0]-18)<0.01))
-#        test.info[files][:,1] /= test.info[files][loc,1]
-#        test.info[files+'_fil'][:,1] /= test.info[files+'_fil'][loc,1]
-#        test.info[files+'_over'][:,1] /= test.info[files+'_over'][loc,1]
-#
-#        test.info[files][:,1] += i
-#        test.info[files+'_fil'][:,1] += i
-#        test.info[files+'_over'][:,1] += i
-#        i+=0.2
-#        aa.append(files)
-#        aa.append(files+'_fil')
-#        aa.append(files+'_over')
-#
-#aa.append('result.txt')
-#test.all_output(aa)
-
-
-#i = 0.0
-#aa = []
-#bb = []       
-#for files in os.listdir():
-#    if files == 'input.txt':
-#        continue
-#    if not '.s' in files:
-#        test.read_input(files,files)
-#        #loc = test.info[files][:,1].argmax(0)
-#        #loc = np.min(np.where(np.absolute(test.info[files][:,0]-30)<0.05)) #0.05, 0.01...
-#        #test.info[files][:,1] /= test.info[files][loc,1]
-#        test.low_pass_filter(files,files+'_fil')
-#        #test.overlap_filter(files+'_fil',files+'_over',529, 'end', 10)
-#        loc = np.min(np.where(np.absolute(test.info[files][:,0]-540)<0.1))
-#        #loc = np.min(np.where(np.absolute(test.info[files][:,0]-35)<0.05)) #0.05, 0.01...
-#        norm = test.info[files][loc,1]
-#        test.info[files+'_origin'] = copy.deepcopy(test.info[files][:,:])
-#        test.info[files+'_filtered'] = copy.deepcopy(test.info[files+'_fil'][:,:])
-#        test.info[files][:,1] /= norm
-#        test.info[files+'_fil'][:,1] /= norm
-#        #test.info[files+'_over'][:,1] /= norm
-#
-#        test.info[files][:,1] += i
-#        test.info[files+'_fil'][:,1] += i
-#        #test.info[files+'_over'][:,1] += i
-#        #i+=0.6
-#        bb.append(files+'_origin')
-#        bb.append(files+'_filtered')
-#        aa.append(files)
-#        aa.append(files+'_fil')
-#        #aa.append(files+'_over')
-#
-#aa.append('result.dat')
-#bb.append('resutl1.dat')
-#test.all_output(aa)
-#test.all_output(bb)
 
 def autowriting(dataset,typ,normloc,ovl,ovstart,ovend,ovch,normstep):
     i = .0
@@ -1058,64 +995,6 @@ def autowriting(dataset,typ,normloc,ovl,ovstart,ovend,ovch,normstep):
     dataset.all_output(normed_out)
 
 
-#dataset,typ,normloc,ovl,ovstart,ovend,ovch,normstep
-#ex: autowriting(data,'ep1',5,True,2,'end',10,0.2)
-#autowriting(data,'loss',18,True,2.5,10,5,0.2)
-
-#data_out = []
-#typ = 'ep2'
-#for files in os.listdir():
-#    if files == 'input.txt':
-#        continue
-#
-#    if typ in files:
-#        name = os.path.splitext(files)[0]
-#        data.read_input(name,files)
-#        
-#        #loc_start = np.min(np.where(np.absolute(data.info[name][:,1])>0.1))
-#        #start = data.info[name][loc_start,0]
-#        data.smoothing_spline(name,name+'_smoothe','start',1,0.99995)
-#        data.smoothing_spline(name+'_smoothe',name+'_smoothed',1,'end',0.9999999)
-#        #data.smoothing_spline(name,name+'_smoothe',start,20,0.999999)
-#        #data.smoothing_spline(name+'_smoothe',name+'_smoothed',20,'end',0.999999)
-#        data_out.append(name)
-#        data_out.append(name+'_smoothed')
-#
-#        #xtemp = copy.deepcopy(data.info[name+'_smoothed'][:,0])
-#        #ytemp = copy.deepcopy(data.info[name+'_smoothed'][:,1])
-#        #data.info[name+'_cond'] = np.inner(xtemp[:,0], ytemp[:,0])
-#        #data.info[name+'_joint'] = np.inner(xtemp[:,0], data.info[name+'_cond'][:,0])
-#        #data_out.append(name+'_cond')
-#        #data_out.append(name+'_joint')
-#    
-#
-#data_out.append('output.dat')
-#data.all_output(data_out)
-
-"""Example Usage"""
-
-"""
-#path = os.path.dirname(os.path.realpath(__file__))
-#os.chdir(os.path.join(path, 'input'))
-#data = Spectrum()
-
-data_out = []
-typ = 'test'
-for files in os.listdir():
-    if files == 'input.txt':
-        continue
-    if typ in files:
-        name = os.path.splitext(files)[0]
-        data.read_input(name,files)
-        
-        data.smoothing_spline(name,name+'_smoothe','start',530,0.9995)
-        data.smoothing_spline(name+'_smoothe',name+'_smoothed',530,'end',0.99995)
-        data_out.append(name)
-        data_out.append(name+'_smoothed')
-        
-data_out.append('output.dat')
-data.all_output(data_out)
-"""
 
 if __name__ == "__main__":
     """
