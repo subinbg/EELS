@@ -21,17 +21,9 @@ from matplotlib.colors import ListedColormap
 class Spectrum:
     def __init__(self):
         self.info = {} # Information dictionary
-        #self.set_dir()
-
-
-    def add_data(self):
         self.info['filename']   = False
-        self.info['input']      = False
-        self.info['window_len'] = False
-        self.info['beta']       = False
-        #self.info['data']       = False
-        #self.info['path']       = False
-        
+        self.info['path']       = False
+
     def set_dir(self, directory=None):
         if directory is None:
             path = os.path.dirname(os.path.realpath(__file__))
@@ -42,26 +34,24 @@ class Spectrum:
             self.info['path'] = path
             os.chdir(path)
 
-    def raise_error(err_message):
+    def raise_error(self,err_message):
         print("""################### ERROR ###################""")
         print(err_message)
         print("""################### ERROR ###################\n\n""")
         sys.exit()
-
-    def read_input(self, name, filename):
-        self.add_data()
+        
+    def read_input(self, name=None, filename='input'):
         #self.set_dir()
         #self.name = name
         self.info['filename'] = filename
-        self.info['window_len'] = 10
-        self.info['beta']       = 5 #Default setting for filterfing
         self.info[name] = False
 
         try:
             path = self.info['path']
+            os.chdir(path)
         except:
             err_message = "You need to declare current file directory before calling read_input.\nUsage: (Spectrum type).set_dir(directory_name)\nError Location: function read_input"
-            raise_error(err_message)
+            self.raise_error(err_message)
 
         file_ext = os.path.splitext(filename)[1]
         if ( ("xls" in file_ext) or ("xlsx" in file_ext) ):
@@ -69,33 +59,52 @@ class Spectrum:
                 inpt = pd.read_excel(filename, sheetname=0, header=None, index_col=None, na_values=['NA'])
             except:
                 err_message = "The file, %s, cannot be read by Pandas.\nError Location: function read_input" % (filename)
-                raise_error(err_message)
+                self.raise_error(err_message)
         else:
             """
             To read a general text file, I assumed its data structure as
-            (Energy column)(tab-spaced)(Intensity column)
+            (Energy column)(tab-spaced)(Intensity column) ...(repeat)
             """
             try:
                 inpt = pd.read_csv(filename, sep='\t', header=None, index_col=None, na_values=['NA'])
             except:
                 err_message = "The file, %s, cannot be read by Pandas.\nError Location: function read_input" % (filename)
-                raise_error(err_message)
+                self.raise_error(err_message)
         
-        if type(inpt.iloc[0,])
+        if type(inpt.iloc[0,1]) is str:
+            """TO DO: What if column name = number???"""
+            data = inpt.iloc[1:,:]
+            data.columns = inpt.iloc[0,:]
 
-        if not type(self.info[name]).__module__ == 'numpy':
-            print("""There is no readable input files in the input folder.\n""")
-            sys.exit()
+            count = -1
+            for names in data.columns[:]:
+                count += 1
+                if( (count%2) is 0 ):
+                    continue
+                self.info[names] = copy.deepcopy(data.iloc[:,count-1:count+1].values)
+        else:
+            data = inpt.copy()
+            if name is None:
+                err_message = "You should declare data name.\nError Location: function read_input"
+                self.raise_error(err_message)
+            self.info[name] = data.values
 
+        #if not type(self.info[name]).__module__ == 'numpy':
+        #    print("""There is no readable input files in the input folder.\n""")
+        #    sys.exit()
 
     def output(self, name, filename, option=False, col_name=None):
         """
         If you want to specify output file directory, you should use set_dir function.
 
-        If option = false, this function will not write column names.
-        If option = true , this function will     write column names.
+        If option = False, this function will not write column names.
+        If option = True , this function will     write column names.
         """
         
+        if not (self.info['path']):
+            err_message = "You should designate a directory to save files with set_dir.\n Error Location: function output"
+            self.raise_error(err_message)
+
         path = self.info['path']
         os.chdir(path)
         if os.path.isdir('output') == False:
@@ -104,34 +113,25 @@ class Spectrum:
         else:
             os.chdir(os.path.join(path,'output'))
 
-
-        #out = open(os.path.splitext(self.file_list[i])[0]+'_output.txt','w')
-        out = open(filename,'w')
-        
-        if(option):
-            statement = ''
-            statement += '{:<30}'.format('Energy Loss')
-            if(col_name==None):
-                print("Warning: no col_name in output method. You should designate col_name if option = True\n")
-            statement += '\t{:<30}'.format(col_name)
-            out.write(statement+'\n')
-        
         data = copy.deepcopy(self.info[name][:,:])
-        for i in range(0, data.shape[0]):
-            statement = '{:<30}\t{:<30}\n'.format(str(data[i,0]), str(data[i,1]))
-            out.write(statement)
-        out.close()
+        df = pd.DataFrame(data, columns=['Energy Loss', name])
+
+        df.to_excel(filename+'.xlsx', sheet_name='Sheet1')
         
-        #os.chdir(os.path.join(path, 'input'))
         os.chdir(path)
 
 
-    def all_output(self, args):
+    def all_output(self, args, filename):
         """
         If you want to specify output file directory, you should use set_dir function.
 
-        Filename should be defined at the last arg.
+        args = list or tuple that contains variable names.
         """
+
+        if not (self.info['path']):
+            err_message = "You should designate a directory to save files with set_dir.\n Error Location: function output"
+            self.raise_error(err_message)
+
         path = self.info['path']
         os.chdir(path)
         if os.path.isdir('output') == False:
@@ -140,64 +140,31 @@ class Spectrum:
         else:
             os.chdir(os.path.join(path,'output'))
 
-        out = open(args[-1],'w')
-
-
-        for j in range(0, len(args[0:-1])):
-            if not isinstance(args[j], str):
-                print("""Arguments should be defined as strings.\n""")
-                sys.exit()
-
-        data = []
-        for j in range(0, len(args[0:-1])):
-            data.append(self.info[args[j]][:,:])
-
-#        dim = data[0].shape[0]
-#        for j in range(1, len(data)):
-#            if not dim == data[j].shape[0]:
-#                print("""All output files should have same number of channels.""")
-#                sys.exit()
-        num = 0
-        for j in range(0, len(data)):
-            temp = data[j].shape[0]
-            if temp >= num:
-                num = temp
+        compare = 0
+        max_num = 0
+        lengths = []
+        for names in args:
+            compare = (self.info[names][:,0]).shape[0]
+            lengths.append(compare)
+            if (compare > max_num):
+                max_num = compare
         
-        temp = []
-        for j in range(0, len(data)):
-            dim = data[j].shape[0]
-            temp.append(np.zeros([num,2]))
-            if not dim == num:
-                temp[j][:dim,:] = copy.deepcopy(data[j][:,:])
-                temp[j][dim:,:] = -300000
-            else:
-                temp[j][:,:] = copy.deepcopy(data[j][:,:])
-                
-        data = []
-        for j in range(0, len(temp)):
-            data.append(temp[j][:,:])
-        dim = data[0].shape[0]
+        df = pd.DataFrame(np.empty([max_num, 2*len(args)])*np.nan)
+        count = -1
+        col_name = []
+        for names in args:
+            count += 1
+            df.iloc[0:lengths[count],count*2:count*2+2] = copy.deepcopy(self.info[names][:,:])
+            col_name.append('Energy Loss')
+            col_name.append(names)
+        df.columns = col_name
 
-        statement = ''
-        for i in range(0, len(data)):
-            statement += '{:<30}\t{:<30}\t'.format('Energy loss', args[i])
-        out.write(statement+'\n')
-
-        for j in range(0, dim):
-            statement = ''
-            for i in range(0, len(data)):
-                if data[i][j,0] < -200000:
-                    statement += '{:<30}\t{:<30}\t'.format('', '')
-                else:
-                    statement += '{:<30}\t{:<30}\t'.format(str(data[i][j,0]), str(data[i][j,1]))
-            out.write(statement+'\n')
-        out.close()
+        df.to_excel(filename+'.xlsx', sheet_name='Sheet1')
         
-        #os.chdir(os.path.join(path, 'input'))
         os.chdir(path)
 
 
-    def low_pass_filter(self, name, filtername):
+    def low_pass_filter(self, name, filtername, window_len=10, beta=5):
         """
         @author: Subin Bang
         @institution: Seoul National University, 2016
