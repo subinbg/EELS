@@ -3,6 +3,8 @@ from random import randint
 import copy
 
 import numpy as np
+import pandas as pd
+
 import scipy.signal as signal
 from scipy.interpolate import interp1d
 from scipy.interpolate import UnivariateSpline
@@ -40,88 +42,46 @@ class Spectrum:
             self.info['path'] = path
             os.chdir(path)
 
+    def raise_error(err_message):
+        print("""################### ERROR ###################""")
+        print(err_message)
+        print("""################### ERROR ###################\n\n""")
+        sys.exit()
+
     def read_input(self, name, filename):
         self.add_data()
         #self.set_dir()
-        self.name = name
+        #self.name = name
         self.info['filename'] = filename
+        self.info['window_len'] = 10
+        self.info['beta']       = 5 #Default setting for filterfing
         self.info[name] = False
 
         try:
             path = self.info['path']
         except:
-            print("""You need to specify current file directory before calling read_input.""")
-            print("""Usage: (Spectrum type).set_dir(directory_name)""")
-            print("""Error: Reading input file aborted.\n""")
-            sys.exit()
+            err_message = "You need to declare current file directory before calling read_input.\nUsage: (Spectrum type).set_dir(directory_name)\nError Location: function read_input"
+            raise_error(err_message)
 
-        if not os.path.isdir('input'):
-            print("""Warning: There is no input file, 'input.txt'.""")
-            print("""The filtering function will adopt default settings.\n""")
-            """sys.exit()"""
+        file_ext = os.path.splitext(filename)[1]
+        if ( ("xls" in file_ext) or ("xlsx" in file_ext) ):
+            try:
+                inpt = pd.read_excel(filename, sheetname=0, header=None, index_col=None, na_values=['NA'])
+            except:
+                err_message = "The file, %s, cannot be read by Pandas.\nError Location: function read_input" % (filename)
+                raise_error(err_message)
         else:
-            os.chdir(os.path.join(path, 'input'))
-            self.input_path = os.path.join('input', 'input.txt')
-            with open(self.input_path, 'r') as _file:
-                _input = _file.readlines()
-            self.info['input'] = True
-
-
-        window_len = beta = 0
-        if self.info['input']:
-            for i in range(0, len(_input)):
-                if _input[i][0] == '$':
-                    continue
-                elif "$" in _input[i]:
-                    for j in range(0, len(_input[i])):
-                        if "$" == _input[i][j]:
-                            end = j
-
-                    if "channel" in _input[i][:end]:
-                        for j in range(0, len(_input[i])):
-                            if "=" == _input[i][j]:
-                                file_num = eval(_input[i][j+1:end])
-                                window_len = file_num
-                    elif "beta" in _input[i][:end]:
-                        for j in range(0, len(_input[i])):
-                            if "=" == _input[i][j]:
-                                file_num = eval(_input[i][j+1:end])
-                                beta = file_num
-                else:
-                    if "channel" in _input[i]:
-                        for j in range(0, len(_input[i])):
-                            if "=" == _input[i][j]:
-                                file_num = eval(_input[i][j+1:])
-                                window_len = file_num
-                    elif "beta" in _input[i]:
-                        for j in range(0, len(_input[i])):
-                            if "=" == _input[i][j]:
-                                file_num = eval(_input[i][j+1:])
-                                beta = file_num
-                                
-            if not (int(window_len) % 2) == 0:
-                print("Channel length for low-pass filter should be even number.\n")
-                sys.exit()
-            self.info['window_len'] = int(window_len)
-            self.info['beta']       = int(beta)
-        else:
-            self.info['window_len'] = 10
-            self.info['beta']       = 5 #Default setting for filterfing
-
-        if os.path.isdir('input'):
-            _file.close()
-            #os.chdir(os.path.join(path, 'input'))
-
-
-        data = np.zeros([1])
-        try:
-            data = np.loadtxt(filename)
-            """The input spectrum file should have
-            column1: energy loss
-            column2: intensity"""
-            self.info[name] = copy.deepcopy(data)
-        except:
-            print('The file, '+filename+', cannot be read by NUMPY due to its data structure.\n')
+            """
+            To read a general text file, I assumed its data structure as
+            (Energy column)(tab-spaced)(Intensity column)
+            """
+            try:
+                inpt = pd.read_csv(filename, sep='\t', header=None, index_col=None, na_values=['NA'])
+            except:
+                err_message = "The file, %s, cannot be read by Pandas.\nError Location: function read_input" % (filename)
+                raise_error(err_message)
+        
+        if type(inpt.iloc[0,])
 
         if not type(self.info[name]).__module__ == 'numpy':
             print("""There is no readable input files in the input folder.\n""")
