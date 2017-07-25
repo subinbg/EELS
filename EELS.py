@@ -1,17 +1,20 @@
 import os, sys
+from random import randint
+import copy
+
 import numpy as np
 import scipy.signal as signal
 from scipy.interpolate import interp1d
 from scipy.interpolate import UnivariateSpline
-import copy
 from scipy.optimize import leastsq
+
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
 from matplotlib.colors import ListedColormap
-import seaborn as sns
-from random import shuffle
-from random import randint
+
+#import seaborn as sns
+#from random import shuffle
 
 class Spectrum:
     def __init__(self):
@@ -49,7 +52,7 @@ class Spectrum:
         except:
             print("""You need to specify current file directory before calling read_input.""")
             print("""Usage: (Spectrum type).set_dir(directory_name)""")
-            print("""Error: Reading input file aborted.""")
+            print("""Error: Reading input file aborted.\n""")
             sys.exit()
 
         if not os.path.isdir('input'):
