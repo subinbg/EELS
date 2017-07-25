@@ -26,7 +26,8 @@ class Spectrum:
 
     def set_dir(self, directory=None):
         if directory is None:
-            path = os.path.dirname(os.path.realpath(__file__))
+            #path = os.path.dirname(os.path.realpath(__file__))
+            path = os.path.dirname(os.path.abspath(sys.modules['__main__'].__file__))
             self.info['path'] = path
             os.chdir(path)
         else:
@@ -116,7 +117,7 @@ class Spectrum:
         data = copy.deepcopy(self.info[name][:,:])
         df = pd.DataFrame(data, columns=['Energy Loss', name])
 
-        df.to_excel(filename+'.xlsx', sheet_name='Sheet1')
+        df.to_excel(filename+'.xlsx', sheet_name='Sheet1', index=False)
         
         os.chdir(path)
 
@@ -159,7 +160,7 @@ class Spectrum:
             col_name.append(names)
         df.columns = col_name
 
-        df.to_excel(filename+'.xlsx', sheet_name='Sheet1')
+        df.to_excel(filename+'.xlsx', sheet_name='Sheet1', index=False)
         
         os.chdir(path)
 
